@@ -28,7 +28,7 @@ def store_report(engine):
             SELECT u.full_name,SUM(o.quantity) as total
             FROM orders as o
             INNER JOIN users as u ON o.user_id = u.id
-            GROUP BY u.full_name 
+            GROUP BY u.id
             ORDER BY SUM(o.quantity) DESC
             LIMIT 3
             """))
@@ -79,7 +79,7 @@ def place_order(engine, email, product_name, quantity):
         SET stock=stock-:quantity
         WHERE id=:product_id
                           """),
-                     {quantity:quantity,"product_id":product_id}
+                     {"quantity":quantity,"product_id":product_id}
                      )
 
 
@@ -104,13 +104,14 @@ def main():
         elif choice=="2":
             name=input("Enter product name:")
             category=input("Enter product category:")
-            price=input("Enter product price:")
-            stock=input("Enter product stock:")
-            add_product(engine, name, category, price, stock)
+            price=int(input("Enter product price:"))
+            stock=int(input("Enter product stock:"))
+            new_product_id=add_product(engine, name, category, price, stock)
+            print(f"New was added its id:{new_product_id}")
         elif choice=="3":
             email=input("Enter email:")
             product_name=input("Enter product name:")
-            quantity=input("Enter quantity:")
+            quantity=int(input("Enter quantity:"))
             try:
                 place_order(engine, email, product_name, quantity)
             except Exception as e:
