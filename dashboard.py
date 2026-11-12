@@ -1,6 +1,8 @@
 import os
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
+from sqlalchemy.engine import url
+from sqlalchemy.exc import SQLAlchemyError
 
 load_dotenv()
 
@@ -8,10 +10,21 @@ load_dotenv()
 def get_engine():
     """Create and return a SQLAlchemy engine from DATABASE_URL."""
     url = os.getenv("DATABASE_URL")
-    if url is None:
+    if not url:
         raise ValueError("DATABASE_URL is not set")
     # TODO: create the engine; handle a missing URL gracefully
-    return create_engine(url)
+
+    try:
+       engine = create_engine(url)
+       with engine.connect() as conn:
+           conn.execute(text("SELECT 1"))
+       return engine
+    except SQLAlchemyError as e:
+       print("Error:could not connect to database")
+       print(f"Error: {e}")
+       raise
+
+
 
 
 def store_report(engine):
@@ -104,7 +117,7 @@ def main():
         elif choice=="2":
             name=input("Enter product name:")
             category=input("Enter product category:")
-            price=int(input("Enter product price:"))
+            price=float(input("Enter product price:"))
             stock=int(input("Enter product stock:"))
             new_product_id=add_product(engine, name, category, price, stock)
             print(f"New was added its id:{new_product_id}")
